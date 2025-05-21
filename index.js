@@ -16,8 +16,16 @@ import orderRoutes from './user/routes/order.route.js'
 const app = express()
 dotenv.config()
 
+const allowedOrigins = ['http://localhost:5173', 'https://farmik-admin.netlify.app'];
+
 const clorsOption = {
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: "GET, POST, PUT, DELETE, PATCH, HEAD",
     credentials: true,
 };
@@ -26,12 +34,12 @@ app.use(cors(clorsOption))
 app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(express.json())
-app.use(express.urlencoded({extended : true}))
+app.use(express.urlencoded({ extended: true }))
 
 app.get('/', (req, res) => res.send("Server is now active."));
 // User routes
 app.use('/api/auth', authRoutes)
-app.use('/api/products',verifyToken, productsRoutes)
+app.use('/api/products', verifyToken, productsRoutes)
 app.use('/api/orders', verifyToken, orderRoutes)
 
 // Admin routes
@@ -41,9 +49,9 @@ app.use('/api/admin', authenticateAdmin, metricsRoutes)
 // Agent routes
 app.use('/api/auth/agent', agentAuthRoutes)
 
-app.listen(process.env.PORT, async() => {
+app.listen(process.env.PORT, async () => {
     connectToDB()
-    .then(() => console.log("DB connection successful"))
-    .catch((err) => console.log("Error in connecting DB", err))
+        .then(() => console.log("DB connection successful"))
+        .catch((err) => console.log("Error in connecting DB", err))
     console.log(`Server is listening at PORT : ${process.env.PORT}`)
 })
